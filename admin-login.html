@@ -1,93 +1,58 @@
 <!DOCTYPE html>
 <html lang="ne">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StayEase - Partner Login</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
-
-  <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-    <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-600/10 blur-3xl rounded-full"></div>
-    
-    <div class="text-center mb-8">
-      <div class="inline-flex p-3 bg-indigo-600 rounded-xl text-white shadow-xl shadow-indigo-500/20 mb-3">
-        <i class="fa-solid fa-hotel text-2xl"></i>
-      </div>
-      <h2 class="text-2xl font-bold tracking-tight text-white">StayEase Partner</h2>
-      <p class="text-sm text-slate-400 mt-1">होटल व्यवस्थापन ड्यासबोर्डमा लगइन गर्नुहोस्</p>
+  <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold text-white">StayEase Partner Login</h2>
     </div>
-
-    <div id="alert-box" class="mb-5 p-3 rounded-lg text-sm bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center gap-2 hidden">
-      <i class="fa-solid fa-triangle-exclamation"></i>
-      <span id="alert-msg"></span>
-    </div>
-
-    <form id="login-form" class="space-y-5" onsubmit="handlePartnerLogin(event)">
+    <div id="alert-box" class="mb-4 p-3 rounded-lg bg-rose-500/10 text-rose-400 text-sm hidden"></div>
+    <form onsubmit="handleLogin(event)" class="space-y-4">
       <div>
-        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">युजरनेम (Username)</label>
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-user"></i></span>
-          <input type="text" id="username" required placeholder="होटलको युजरनेम" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-all text-sm">
-        </div>
+        <label class="block text-xs text-slate-400 mb-1">युजरनेम</label>
+        <input type="text" id="username" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500">
       </div>
-
       <div>
-        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">पासवर्ड (Password)</label>
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-lock"></i></span>
-          <input type="password" id="password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-all text-sm">
-        </div>
+        <label class="block text-xs text-slate-400 mb-1">पासवर्ड</label>
+        <input type="password" id="password" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none focus:border-indigo-500">
       </div>
-
-      <button type="submit" id="btn-text" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/10 flex items-center justify-center gap-2 text-sm mt-2 cursor-pointer">
-        <span>सुरक्षित लगइन</span> <i class="fa-solid fa-arrow-right text-xs"></i>
-      </button>
+      <button type="submit" id="btn" class="w-full bg-indigo-600 py-3 rounded-xl font-bold cursor-pointer">लगइन गर्नुहोस्</button>
     </form>
   </div>
-
   <script>
-    function handlePartnerLogin(e) {
-      e.preventDefault();
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      const btn = document.getElementById("btn-text");
-      const alertBox = document.getElementById("alert-box");
-      
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> प्रमाणिकरण हुँदैछ...`;
-      btn.disabled = true;
+    // 🚨 यहाँ आफ्नो गुगल वेब एपको लिङ्क हाल्नुहोस्
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycby4FMkDTZNNMnYlKkxy6Hk-r0HMgRX70LoEzsWJwNozMnareKC59N1R1Ds8BAZekN95/exec";
 
-      // ब्याकइन्डको Auth.gs मा भएको verifyAdminLogin फङ्गसनलाई कल गर्ने
-      google.script.run
-        .withSuccessHandler(function(response) {
-          if (response.success) {
-            // यदि लगइन सफल भयो भने लोकलस्टोरेजमा सेसन सेभ गर्ने
-            localStorage.setItem("stayease_hotel_id", response.hotelId);
-            localStorage.setItem("stayease_hotel_name", response.hotelName);
-            localStorage.setItem("stayease_token", response.token);
-            
-            // सोझै ड्यासबोर्ड पेजमा रिडाइरेक्ट गर्ने
-            window.location.href = window.location.href.split('?')[0] + "?page=dashboard";
-          } else {
-            alertBox.classList.remove("hidden");
-            document.getElementById("alert-msg").innerText = response.message;
-            btn.innerHTML = `<span>सुरक्षित लगइन</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
-            btn.disabled = false;
-          }
+    function handleLogin(e) {
+      e.preventDefault();
+      document.getElementById("btn").innerText = "प्रमाणिकरण हुँदैछ...";
+      
+      fetch(GOOGLE_API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "login",
+          username: document.getElementById("username").value,
+          password: document.getElementById("password").value
         })
-        .withFailureHandler(function(err) {
-          alertBox.classList.remove("hidden");
-          document.getElementById("alert-msg").innerText = "कनेक्सन त्रुटि! फेरि प्रयास गर्नुहोस्।";
-          btn.innerHTML = `<span>सुरक्षित लगइन</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
-          btn.disabled = false;
-        })
-        .verifyAdminLogin(user, pass);
+      })
+      .then(res => res.json())
+      .then(res => {
+        if(res.success) {
+          localStorage.setItem("stayease_id", res.hotelId);
+          localStorage.setItem("stayease_name", res.hotelName);
+          localStorage.setItem("stayease_token", res.token);
+          window.location.href = "admin-dashboard.html";
+        } else {
+          document.getElementById("alert-box").classList.remove("hidden");
+          document.getElementById("alert-box").innerText = res.message;
+          document.getElementById("btn").innerText = "लगइन गर्नुहोस्";
+        }
+      });
     }
   </script>
 </body>
