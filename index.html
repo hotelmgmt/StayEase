@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html lang="ne">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StayEase - Client Portal</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-12">
+  
   <header class="bg-slate-900 p-4 border-b border-slate-800 sticky top-0 z-50">
     <h1 class="font-bold text-center text-white" id="title">StayEase Booking</h1>
+    <p id="sub-title" class="text-center text-[10px] text-slate-500 mt-0.5">होटल डाटा लोड हुँदैछ...</p>
   </header>
 
   <main class="max-w-md mx-auto p-4 space-y-4">
+    
+    <div id="error-box" class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl hidden"></div>
+
     <div id="countdown-card" class="p-4 bg-amber-600/10 border border-amber-500/30 rounded-2xl hidden">
       <p class="text-xs text-amber-400">🔒 कोठा होल्ड कोड (देखाउनुहोस्):</p>
       <div class="text-2xl font-black text-white mt-1" id="display-otp">----</div>
@@ -23,58 +29,133 @@
     <div id="lost-section" class="p-4 bg-rose-950/40 border border-rose-900 rounded-2xl hidden">
       <span class="text-xs font-bold text-rose-400 block">🧳 सामान छुटेमा अलर्ट पठाउनुहोस्:</span>
       <div class="mt-2 flex gap-2">
-        <input type="text" id="lost-desc" placeholder="सामानको नाम" class="flex-1 bg-slate-950 border border-slate-800 p-2 text-xs rounded-xl">
+        <input type="text" id="lost-desc" placeholder="सामानको नाम" class="flex-1 bg-slate-950 border border-slate-800 p-2 text-xs rounded-xl text-white">
         <button onclick="sendLostAlert()" class="bg-rose-600 px-3 py-2 text-xs rounded-xl font-bold cursor-pointer">Send</button>
       </div>
     </div>
 
     <div class="space-y-2">
-      <h3 class="text-xs text-slate-400 font-bold">उपलब्ध कोठाहरू छान्नुहोस्:</h3>
+      <h3 class="text-xs text-slate-400 font-bold"><i class="fa-solid fa-door-open mr-1 text-indigo-400"></i> उपलब्ध कोठाहरू:</h3>
+      
+      <div id="rooms-loading" class="text-center py-8 text-slate-500 text-xs">
+        <i class="fa-solid fa-spinner fa-spin mr-1 text-indigo-500"></i> कोठाहरू खोजिँदैछ...
+      </div>
+
       <div id="rooms-list" class="space-y-2"></div>
     </div>
   </main>
 
   <script>
     // 🚨 यहाँ आफ्नो गुगल वेब एपको लिङ्क हाल्नुहोस्
-    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycby4FMkDTZNNMnYlKkxy6Hk-r0HMgRX70LoEzsWJwNozMnareKC59N1R1Ds8BAZekN95/exec";
+    const GOOGLE_API_URL = "यहाँ_गुगल_वेब_एप_को_लिङ्क_हाल्नुहोस्";
+    
+    // URL बाट होटल ID लिने (जस्तै: ?hotel=H-01)
     const urlParams = new URLSearchParams(window.location.search);
-    const hotelId = urlParams.get("hotel") || "H-01";
+    let hotelId = urlParams.get("hotel");
+    
+    // यदि URL मा होटल ID छैन भने डिफ्लोट H-01 लिने
+    if (!hotelId) {
+      hotelId = "H-01";
+    }
+    
+    // स्पेस हटाउने सेफ्टी (Trim)
+    hotelId = hotelId.trim();
     let menuUrl = "";
 
     document.addEventListener("DOMContentLoaded", function() {
-      loadRooms(); checkState(); setInterval(checkState, 10000);
+      loadRooms(); 
+      checkState(); 
+      setInterval(checkState, 10000);
     });
 
     function loadRooms() {
-      fetch(GOOGLE_API_URL, { method: "POST", body: JSON.stringify({ action: "getHotelData", hotelId: hotelId }) })
-      .then(r => r.json()).then(res => {
-        if(!res.success) return;
+      const list = document.getElementById("rooms-list");
+      const loadingDiv = document.getElementById("rooms-loading");
+      const errBox = document.getElementById("error-box");
+
+      fetch(GOOGLE_API_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ action: "getHotelData", hotelId: hotelId }) 
+      })
+      .then(r => r.json())
+      .then(res => {
+        loadingDiv.classList.add("hidden");
+        
+        if(!res.success) {
+          errBox.classList.remove("hidden");
+          errBox.innerText = `🚨 होटल ID [ ${hotelId} ] फेला परेन वा निष्क्रिय छ। कृपया URL चेक गर्नुहोस् वा सुपर एडमिनमा होटल थप्नुहोस्।`;
+          document.getElementById("sub-title").innerText = "डाटा एरर";
+          return;
+        }
+
         document.getElementById("title").innerText = res.hotel.name;
-        const list = document.getElementById("rooms-list"); list.innerHTML = "";
+        document.getElementById("sub-title").innerText = `होटल ID: ${res.hotel.id}`;
+        list.innerHTML = "";
+        
+        if(res.rooms.length === 0) {
+          list.innerHTML = `<div class="text-center py-6 text-slate-600 text-xs">यस होटलमा कुनै कोठाहरू थपिएका छैनन्।</div>`;
+          return;
+        }
+
         res.rooms.forEach(r => {
-          let isAvail = r.status === "Available";
-          list.innerHTML += `<div class="p-4 bg-slate-900 border border-slate-850 rounded-2xl flex justify-between items-center"><div><span class="font-bold block text-sm">Room ${r.roomNumber}</span><span class="text-xs text-indigo-400">रु. ${r.price}</span></div><button ${isAvail?'':'disabled'} onclick="bookRoom('${r.roomNumber}')" class="px-3 py-1.5 text-xs rounded-xl font-bold ${isAvail?'bg-indigo-600':'bg-slate-800 text-slate-500'}">${isAvail?'Book':'Locked'}</button></div>`;
+          let isAvail = r.status.toString().trim() === "Available";
+          let badgeColor = isAvail ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20";
+          
+          list.innerHTML += `
+            <div class="p-4 bg-slate-900 border border-slate-850 rounded-2xl flex justify-between items-center transition hover:border-slate-800">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-sm text-white">Room ${r.roomNumber}</span>
+                  <span class="border text-[9px] px-1.5 py-0.5 rounded font-medium ${badgeColor}">${r.status}</span>
+                </div>
+                <span class="text-xs text-indigo-400 block mt-0.5">रु. ${r.price} / रात</span>
+              </div>
+              <button ${isAvail?'':'disabled'} onclick="bookRoom('${r.roomNumber}')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition ${isAvail?'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer':'bg-slate-800 text-slate-500 cursor-not-allowed'}">
+                ${isAvail?'Book':'Locked'}
+              </button>
+            </div>`;
         });
+      })
+      .catch(err => {
+        loadingDiv.classList.add("hidden");
+        errBox.classList.remove("hidden");
+        errBox.innerText = "🚨 सर्भरसँग कनेक्सन हुन सकेन। गुगल स्क्रिप्टको Deployment चेक गर्नुहोस्।";
       });
     }
 
     function bookRoom(num) {
-      const name = prompt("नाम:"); const phone = prompt("फोन:");
+      const name = prompt("ग्राहकको नाम लेख्नुहोस्:"); 
+      const phone = prompt("मोबाइल नम्बर लेख्नुहोस्:");
       if(!name || !phone) return;
-      fetch(GOOGLE_API_URL, { method: "POST", body: JSON.stringify({ action: "createBooking", hotelId: hotelId, roomNumber: num, customerName: name, customerPhone: phone }) })
-      .then(r => r.json()).then(res => {
+      
+      fetch(GOOGLE_API_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ action: "createBooking", hotelId: hotelId, roomNumber: num, customerName: name, customerPhone: phone }) 
+      })
+      .then(r => r.json())
+      .then(res => {
         if(res.success) {
-          localStorage.setItem("my_room", num); localStorage.setItem("my_code", res.secretCode);
-          checkState(); loadRooms();
+          localStorage.setItem("my_room", num); 
+          localStorage.setItem("my_code", res.secretCode);
+          checkState(); 
+          loadRooms();
+        } else {
+          alert(res.message || "बुकिङ असफल भयो।");
         }
       });
     }
 
     function checkState() {
-      const room = localStorage.getItem("my_room"); const code = localStorage.getItem("my_code");
+      const room = localStorage.getItem("my_room"); 
+      const code = localStorage.getItem("my_code");
       if(!room || !code) return;
-      fetch(GOOGLE_API_URL, { method: "POST", body: JSON.stringify({ action: "checkMenu", hotelId: hotelId, roomNumber: room, secretCode: code }) })
-      .then(r => r.json()).then(res => {
+      
+      fetch(GOOGLE_API_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ action: "checkMenu", hotelId: hotelId, roomNumber: room, secretCode: code }) 
+      })
+      .then(r => r.json())
+      .then(res => {
         document.getElementById("countdown-card").classList.remove("hidden");
         if(res.authorized) {
           document.getElementById("display-otp").innerText = code + " (✓ Checked-In)";
@@ -82,14 +163,24 @@
           document.getElementById("lost-section").classList.remove("hidden");
           menuUrl = res.menuUrl;
         } else {
-          document.getElementById("display-otp").innerText = code;
+          document.getElementById("display-otp").innerText = code + " (Pending Counter Approval)";
         }
       });
     }
 
     function sendLostAlert() {
-      fetch(GOOGLE_API_URL, { method: "POST", body: JSON.stringify({ action: "lostItemCustomer", hotelId: hotelId, roomNumber: localStorage.getItem("my_room"), secretCode: localStorage.getItem("my_code"), itemDetails: document.getElementById("lost-desc").value }) })
-      .then(r => r.json()).then(res => { alert(res.message); });
+      const desc = document.getElementById("lost-desc").value;
+      if(!desc) return alert("सामानको विवरण लेख्नुहोस्।");
+      
+      fetch(GOOGLE_API_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ action: "lostItemCustomer", hotelId: hotelId, roomNumber: localStorage.getItem("my_room"), secretCode: localStorage.getItem("my_code"), itemDetails: desc }) 
+      })
+      .then(r => r.json())
+      .then(res => { 
+        alert(res.message); 
+        document.getElementById("lost-desc").value = "";
+      });
     }
   </script>
 </body>
