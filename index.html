@@ -6,6 +6,39 @@
   <meta name="theme-color" content="#f3f9ff">
   <title>StayEase Nepal | खाली कोठा खोज्नुहोस्</title>
   <link rel="stylesheet" href="theme.css">
+  <style>
+    /* Public homepage only: compact, responsive, premium presentation. */
+    .home-shell { max-width: 1180px; padding-top: 24px; }
+    .home-hero { padding: clamp(24px, 4vw, 46px); border-radius: 22px; position: relative; overflow: hidden;
+      background: linear-gradient(112deg, #f8fcff 0%, #edf5ff 63%, #f6f4ff 100%); }
+    .home-hero::after { content: ''; position: absolute; width: 290px; height: 290px; right: -120px; top: -135px;
+      border-radius: 50%; background: radial-gradient(circle, #b5d7f855, transparent 68%); pointer-events: none; }
+    .home-kicker { color: #2168a2; font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .home-title { max-width: 740px; font-size: clamp(25px, 3.1vw, 38px); line-height: 1.35; letter-spacing: -.025em; margin: 12px 0 9px; }
+    .home-intro { font-size: clamp(13px, 1.35vw, 15px); max-width: 650px; margin: 0 0 21px; }
+    .home-search { max-width: 860px; margin: 0; box-shadow: 0 9px 30px #244c7410; }
+    .home-search .btn { font-size: 13px; white-space: nowrap; }
+    .home-search input { font-size: 14px; }
+    .home-help { display: block; margin-top: 10px; font-size: 11px; }
+    .home-section-head { margin-bottom: 16px; }
+    .home-section-head h2 { font-size: clamp(18px, 2vw, 22px); margin: 0; }
+    .home-benefits { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-top: 22px; }
+    .home-benefit { padding: 17px 19px; background: #ffffffc9; border: 1px solid var(--line); border-radius: 16px; }
+    .home-benefit strong { display: block; font-size: 13px; margin-bottom: 5px; }
+    .home-benefit p { margin: 0; color: var(--muted); font-size: 12px; }
+    .home-empty { padding: 24px; border: 1px dashed #c7d9ea; border-radius: 15px; background: #ffffffba; color: var(--muted); font-size: 14px; }
+    .home-results-status { font-size: 12px; color: var(--muted); }
+    @media (max-width: 700px) {
+      .home-shell { padding-top: 12px; }
+      .home-hero { padding: 24px 18px; }
+      .home-title { font-size: clamp(23px, 6vw, 29px); }
+      .home-benefits { grid-template-columns: 1fr; gap: 9px; }
+      .home-benefit { padding: 12px 15px; }
+      .home-search { flex-direction: column; }
+      .home-search .btn { width: 100%; }
+      .home-section-head { align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -20,21 +53,31 @@
       </nav>
     </div>
   </header>
-  <main class="shell">
-    <section class="hero glass">
-      <span class="pill">Live Room Availability</span>
-      <h1 style="margin-top:16px">कहाँ कुन कोठा खाली छ ?<br>मोबाइलबाटै थाहा पाउनुहोस् ।</h1>
-      <p class="muted">होटल–होटल धाउनु पर्दैन । गन्तव्य छान्नुहोस्, उपलब्ध कोठा हेर्नुहोस् र अनुरोध पठाउनुहोस् ।</p>
-      <form class="search" id="searchForm">
-        <input id="destination" aria-label="गन्तव्य" placeholder="चितवन, सौराहा, पोखरा, होटलको नाम...">
-        <button class="btn" type="submit">खाली कोठा खोज्नुहोस्</button>
-        <button class="btn secondary" type="button" id="nearby">📍 Nearby</button>
+  <main class="shell home-shell">
+    <section class="hero glass home-hero" aria-labelledby="homeTitle">
+      <span class="home-kicker">StayEase Nepal · Live Hotel Discovery</span>
+      <h1 id="homeTitle" class="home-title">खाली कोठा खोज्नुहोस्, सजिलै होटल भेट्नुहोस् ।</h1>
+      <p class="muted home-intro">गन्तव्य, होटलको विवरण, उपलब्ध कोठा र मूल्य एउटै ठाउँबाट हेर्नुहोस् । होटल–होटल धाउनु पर्दैन ।</p>
+      <form class="search home-search" id="searchForm" role="search">
+        <input id="destination" aria-label="शहर, जिल्ला वा होटलको नाम" placeholder="शहर, जिल्ला वा होटलको नाम लेख्नुहोस्..." autocomplete="off">
+        <button class="btn" type="submit">🔎 होटल खोज्नुहोस्</button>
+        <button class="btn secondary" type="button" id="nearby">📍 नजिकका होटल</button>
       </form>
-      <small>GPS प्रयोग गर्दा तपाईंको अनुमति मागिनेछ । स्थान उपलब्ध नभए सामान्य खोजी प्रयोग गर्नुहोस् ।</small>
+      <small class="home-help">नजिकका होटल खोज्दा मात्र तपाईंको GPS अनुमति मागिनेछ ।</small>
     </section>
-    <section class="section" id="results">
-      <div class="row between"><h2>आबद्ध होटल र उपलब्ध कोठा</h2><span class="pill">अपडेटेड स्थिति</span></div>
-      <div class="grid" id="hotelList"><p>होटल खोजिँदैछ...</p></div>
+
+    <section class="home-benefits" aria-label="StayEase का सुविधाहरू">
+      <div class="home-benefit"><strong>🏨 होटल र कोठाको विवरण</strong><p>एकै ठाउँमा होटल, कोठा र सुविधाको जानकारी ।</p></div>
+      <div class="home-benefit"><strong>📍 सजिलो स्थान खोजी</strong><p>गन्तव्य वा होटलको नामबाट खोज्नुहोस् ।</p></div>
+      <div class="home-benefit"><strong>📱 मोबाइलमै बुकिङ अनुरोध</strong><p>उपलब्ध कोठा छानेर अनुरोध पठाउनुहोस् ।</p></div>
+    </section>
+
+    <section class="section" id="results" aria-live="polite">
+      <div class="row between home-section-head">
+        <h2 id="resultsTitle">आबद्ध होटलहरू</h2>
+        <span class="home-results-status" id="resultsStatus">होटलहरूको अवस्था जाँच हुँदैछ...</span>
+      </div>
+      <div class="grid" id="hotelList"></div>
     </section>
     <section class="section hidden" id="roomSection">
       <button class="btn ghost small" id="back">← सबै होटल</button>
@@ -83,14 +126,30 @@
     }
 
     async function search(extra = {}) {
-      const result = await api('searchHotels', { query: $('destination').value.trim(), ...extra }, false);
-      if (!result.success) throw new Error(result.message);
-      window.currentHotels = result.hotels;
-      $('hotelList').innerHTML = result.hotels.length
-        ? result.hotels.map(hotelCard).join('')
-        : '<div class="card">यो स्थानमा हाल कुनै सक्रिय आबद्ध होटल भेटिएन ।</div>';
+      const query = $('destination').value.trim();
+      const filtered = Boolean(query || extra.latitude !== undefined);
+      $('resultsStatus').textContent = 'होटलहरूको अवस्था जाँच हुँदैछ...';
+      const result = await api('searchHotels', { query, ...extra }, false);
+      if (!result.success) throw new Error(result.message || 'होटल खोज्न सकिएन ।');
+      window.currentHotels = result.hotels || [];
+      $('resultsTitle').textContent = filtered ? 'खोजीका नतिजाहरू' : 'आबद्ध होटलहरू';
+      $('resultsStatus').textContent = window.currentHotels.length
+        ? `${window.currentHotels.length} होटल भेटिए` : (filtered ? 'खोजी पूरा भयो' : '');
+      if (window.currentHotels.length) {
+        $('hotelList').innerHTML = window.currentHotels.map(hotelCard).join('');
+        $('results').classList.remove('hidden');
+      } else if (filtered) {
+        // No-result feedback belongs to an explicit location/name search, not the landing page.
+        $('hotelList').innerHTML = '<div class="home-empty">तपाईंले खोज्नुभएको स्थान वा नाममा हाल उपलब्ध होटल भेटिएन । अर्को स्थान वा होटलको नाम खोज्नुहोस् ।</div>';
+        $('results').classList.remove('hidden');
+      } else {
+        // Do not present the entire platform as empty on initial load.
+        // Do not invent hotels or show unapproved/inactive records.
+        $('hotelList').innerHTML = '';
+        $('results').classList.add('hidden');
+      }
       $('roomSection').classList.add('hidden');
-      $('results').classList.remove('hidden');
+      if (filtered) $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     async function openHotel(id) {
@@ -186,7 +245,10 @@
       if (!result.success) throw new Error(result.message);
       openModal('मेरो बुकिङ', `<p>Booking ID : ${esc(result.bookingId)}</p><p>Room : ${esc(result.roomNumber)}</p><p>अवस्था : ${badge(result.status)}</p>`);
     });
-    search().catch(error => notify(error.message, true));
+    search().catch(error => {
+      $('results').classList.add('hidden');
+      notify(error.message, true);
+    });
   </script>
 </body>
 </html>
