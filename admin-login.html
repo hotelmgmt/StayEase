@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StayEase Nepal | Admin Login</title>
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <header><div class="nav"><a href="index.html" class="brand"><img src="Logo.png" alt="StayEase Nepal">StayEase Nepal</a><a href="index.html">मुख्य वेबसाइट →</a></div></header>
+  <main class="shell">
+    <section class="auth card">
+      <img class="logo" src="Logo.png" alt="StayEase Nepal Logo">
+      <h2 style="text-align:center">Admin Login</h2>
+      <p class="muted" style="text-align:center">आफ्नो Username र Password राख्नुहोस् ।</p>
+      <form id="loginForm">
+        <label class="field">Username<input name="username" required autocomplete="username"></label>
+        <label class="field">Password<input name="password" id="password" type="password" required autocomplete="current-password"></label>
+        <label class="row mini"><input type="checkbox" id="showPassword"> Password देखाउनुहोस्</label>
+        <button class="btn full" type="submit">Login गर्नुहोस्</button>
+      </form>
+      <p style="text-align:center"><button class="btn ghost small" id="forgot">Forgot Password ?</button></p>
+      <section class="hidden" id="resetBox">
+        <h3>पासवर्ड रिसेट</h3>
+        <form id="resetRequest">
+          <label class="field">Username<input name="username" required></label>
+          <button class="btn secondary full" type="submit">इमेलमा OTP पठाउनुहोस्</button>
+        </form>
+        <form id="resetConfirm" class="stack" style="margin-top:12px">
+          <label class="field">६ अङ्कको OTP<input name="otp" required inputmode="numeric" maxlength="6"></label>
+          <label class="field">नयाँ पासवर्ड<input name="newPassword" type="password" minlength="10" required></label>
+          <button class="btn full" type="submit">पासवर्ड परिवर्तन गर्नुहोस्</button>
+        </form>
+      </section>
+    </section>
+  </main>
+  <footer>Designed & Developed by Nirajan Aryal (<a href="tel:9851113811">9851113811</a>)</footer>
+  <script src="common.js"></script>
+  <script>
+    'use strict';
+    const expectedRole = 'Admin';
+    let resetUsername = '';
+    $('showPassword').onchange = event => {
+      $('password').type = event.target.checked ? 'text' : 'password';
+    };
+    $('loginForm').onsubmit = event => {
+      event.preventDefault();
+      busy(event.submitter, async () => {
+        const result = await api('login', { ...formData(event.target), expectedRole }, false);
+        if (!result.success) throw new Error(result.message);
+        sessionStorage.setItem('se_token', result.token);
+        sessionStorage.setItem('se_role', result.role);
+        location.href = rolePage(result.role);
+      });
+    };
+    $('forgot').onclick = () => $('resetBox').classList.toggle('hidden');
+    $('resetRequest').onsubmit = event => {
+      event.preventDefault();
+      resetUsername = formData(event.target).username;
+      busy(event.submitter, async () => {
+        const result = await api('requestPasswordReset', { username: resetUsername }, false);
+        notify(result.message, !result.success);
+      });
+    };
+    $('resetConfirm').onsubmit = event => {
+      event.preventDefault();
+      busy(event.submitter, async () => {
+        const result = await api('confirmPasswordReset', { username: resetUsername, ...formData(event.target) }, false);
+        notify(result.message, !result.success);
+        if (result.success) $('resetBox').classList.add('hidden');
+      });
+    };
+  </script>
+</body>
+</html>

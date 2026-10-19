@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StayEase Nepal | Hotel Admin</title>
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <header><div class="nav"><a href="index.html" class="brand"><img src="Logo.png" alt="StayEase Nepal">StayEase Nepal</a><nav class="navlinks"><span id="hotelName" class="mini">Hotel Admin</span><button class="btn ghost small" id="logout">Logout</button></nav></div></header>
+  <main class="shell stack">
+    <section class="hero glass"><span class="pill">Hotel Partner Center</span><h1 id="heading" style="margin-top:12px">होटल व्यवस्थापन</h1><p class="muted">कोठा, Booking, Location, फोटो र होटल विवरण एकै ठाउँमा ।</p></section>
+    <section class="card hidden" id="firstLogin">
+      <h2>पहिलो Login · सम्पर्क र इमेल प्रमाणीकरण</h2>
+      <p class="muted">मोबाइल नम्बर र इमेल प्रमाणित गरेपछि मात्र व्यवस्थापन सुरु गर्नुहोस् ।</p>
+      <div class="two">
+        <form id="mobileForm"><label class="field">सम्पर्क मोबाइल<input name="mobile" required inputmode="tel"></label><button class="btn" type="submit">मोबाइल सुरक्षित गर्नुहोस्</button></form>
+        <form id="emailForm"><label class="field">आधिकारिक Gmail / Email<input name="email" type="email" required></label><button class="btn" type="submit">Email OTP पठाउनुहोस्</button></form>
+      </div>
+      <form id="verifyForm" class="row"><label class="field">इमेलमा आएको ६ अङ्कको OTP<input name="otp" inputmode="numeric" required maxlength="6"></label><button class="btn" type="submit">Email Verify</button></form>
+      <form id="passwordForm" class="two"><label class="field">हालको Password<input type="password" name="currentPassword" required></label><label class="field">नयाँ Password<input type="password" name="newPassword" minlength="10" required></label><button class="btn" type="submit">Password Change</button></form>
+    </section>
+    <section class="grid" id="stats" data-requires-profile>
+      <div class="card stat"><strong id="total">–</strong><small>कुल कोठा</small></div>
+      <div class="card stat"><strong id="available">–</strong><small>खाली</small></div>
+      <div class="card stat"><strong id="processing">–</strong><small>Processing</small></div>
+    </section>
+    <section class="card" data-requires-profile>
+      <h2>होटल Profile र Google Maps</h2>
+      <form id="hotelForm" class="stack">
+        <div class="formgrid">
+          <label class="field">प्रदेश<input name="province"></label>
+          <label class="field">जिल्ला<input name="district"></label>
+          <label class="field">नगरपालिका<input name="municipality"></label>
+          <label class="field">पूरा ठेगाना<input name="address"></label>
+          <label class="field">Latitude<input name="latitude" inputmode="decimal"></label>
+          <label class="field">Longitude<input name="longitude" inputmode="decimal"></label>
+        </div>
+        <label class="field">Google Maps Link<input name="maps" placeholder="https://maps.app.goo.gl/..."></label>
+        <label class="field">होटल परिचय<textarea name="description" rows="3"></textarea></label>
+        <label class="field">सुविधाहरू<textarea name="facilities" rows="2" placeholder="WiFi, Parking, Breakfast"></textarea></label>
+        <div class="row"><button class="btn" type="submit">होटल विवरण अपडेट</button><button type="button" class="btn secondary" id="gps">📍 हालको GPS राख्नुहोस्</button></div>
+      </form>
+      <div style="margin-top:18px"><h3>होटलको मुख्य फोटो</h3><input type="file" id="hotelPhoto" accept="image/*"><button class="btn secondary small" id="uploadHotel">फोटो अपलोड</button></div>
+    </section>
+    <section class="card" data-requires-profile>
+      <div class="row between"><h2>कोठा व्यवस्थापन</h2><button class="btn" id="addRoom">+ कोठा थप्नुहोस्</button></div>
+      <div id="roomArea" class="grid">लोड हुँदैछ...</div>
+    </section>
+    <section class="card" data-requires-profile><h2>Booking Requests र Check-In / Out</h2><div id="bookingArea">लोड हुँदैछ...</div></section>
+  </main>
+  <footer>Designed & Developed by Nirajan Aryal (<a href="tel:9851113811">9851113811</a>)</footer>
+  <div class="dialogback hidden" id="modal"><div class="dialog"><div class="row between"><h2 id="modalTitle"></h2><button class="btn ghost small" id="closeModal">✕</button></div><div id="modalBody"></div></div></div>
+  <script src="common.js"></script>
+  <script src="hotel-admin.js"></script>
+</body>
+</html>
