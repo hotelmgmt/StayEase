@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f9ff">
+  <title>StayEase Nepal | खाली कोठा खोज्नुहोस्</title>
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <a class="brand" href="index.html">
+        <img src="Logo.png" alt="StayEase Nepal Logo">
+        <span>StayEase Nepal</span>
+      </a>
+      <nav class="navlinks">
+        <a href="login.html">Hotel Partner</a>
+        <button class="btn secondary small" id="myBooking">मेरो बुकिङ</button>
+      </nav>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="hero glass">
+      <span class="pill">Live Room Availability</span>
+      <h1 style="margin-top:16px">कहाँ कुन कोठा खाली छ ?<br>मोबाइलबाटै थाहा पाउनुहोस् ।</h1>
+      <p class="muted">होटल–होटल धाउनु पर्दैन । गन्तव्य छान्नुहोस्, उपलब्ध कोठा हेर्नुहोस् र अनुरोध पठाउनुहोस् ।</p>
+      <form class="search" id="searchForm">
+        <input id="destination" aria-label="गन्तव्य" placeholder="चितवन, सौराहा, पोखरा, होटलको नाम...">
+        <button class="btn" type="submit">खाली कोठा खोज्नुहोस्</button>
+        <button class="btn secondary" type="button" id="nearby">📍 Nearby</button>
+      </form>
+      <small>GPS प्रयोग गर्दा तपाईंको अनुमति मागिनेछ । स्थान उपलब्ध नभए सामान्य खोजी प्रयोग गर्नुहोस् ।</small>
+    </section>
+    <section class="section" id="results">
+      <div class="row between"><h2>आबद्ध होटल र उपलब्ध कोठा</h2><span class="pill">अपडेटेड स्थिति</span></div>
+      <div class="grid" id="hotelList"><p>होटल खोजिँदैछ...</p></div>
+    </section>
+    <section class="section hidden" id="roomSection">
+      <button class="btn ghost small" id="back">← सबै होटल</button>
+      <h2 id="roomTitle" style="margin-top:18px"></h2>
+      <p id="roomSub" class="muted"></p>
+      <div class="grid" id="roomList"></div>
+    </section>
+  </main>
+  <footer>© 2026 StayEase Nepal · Designed & Developed by Nirajan Aryal (<a href="tel:9851113811">9851113811</a>)</footer>
+  <div class="dialogback hidden" id="modal">
+    <div class="dialog">
+      <div class="row between"><h2 id="modalTitle">बुकिङ अनुरोध</h2><button class="btn ghost small" id="closeModal">✕</button></div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+  <script src="common.js"></script>
+  <script>
+    'use strict';
+    let selectedHotel = null;
+    let bookingRequestId = null;
+    const photos = {};
+
+    function photo(url) {
+      return url ? esc(url) : '';
+    }
+
+    function hotelCard(h) {
+      const s = h.summary;
+      return `
+        <article class="card">
+          ${h.photo ? `<img class="picture" src="${photo(h.photo)}" alt="${esc(h.name)}" loading="lazy">` : '<div class="picture" style="display:grid;place-items:center;font-size:55px">🏨</div>'}
+          <h3 style="margin-top:13px">${esc(h.name)}</h3>
+          <p class="muted mini">📍 ${esc([h.municipality, h.district].filter(Boolean).join(', '))}</p>
+          <div class="statgrid">
+            <div class="stat"><strong>${s.total}</strong><small>कुल</small></div>
+            <div class="stat"><strong style="color:#08855c">${s.available}</strong><small>खाली</small></div>
+            <div class="stat"><strong style="color:#b77d12">${s.processing}</strong><small>प्रक्रियामा</small></div>
+            <div class="stat"><strong>${s.occupied}</strong><small>भरिएको</small></div>
+          </div>
+          <div class="row between">
+            <strong>रु. ${Number(h.minPrice || 0).toLocaleString()} देखि</strong>
+            <button class="btn small" data-hotel="${esc(h.id)}">कोठा हेर्नुहोस् →</button>
+          </div>
+          ${h.distanceKm !== undefined ? `<p class="mini muted">करिब ${h.distanceKm} किमी टाढा</p>` : ''}
+        </article>`;
+    }
+
+    async function search(extra = {}) {
+      const result = await api('searchHotels', { query: $('destination').value.trim(), ...extra }, false);
+      if (!result.success) throw new Error(result.message);
+      window.currentHotels = result.hotels;
+      $('hotelList').innerHTML = result.hotels.length
+        ? result.hotels.map(hotelCard).join('')
+        : '<div class="card">यो स्थानमा हाल कुनै सक्रिय आबद्ध होटल भेटिएन ।</div>';
+      $('roomSection').classList.add('hidden');
+      $('results').classList.remove('hidden');
+    }
+
+    async function openHotel(id) {
+      const result = await api('getRoomDetails', { hotelId: id }, false);
+      if (!result.success) throw new Error(result.message);
+      selectedHotel = result.hotel;
+      $('roomTitle').textContent = result.hotel.name;
+      $('roomSub').innerHTML = `${esc(result.hotel.address || result.hotel.district)} ${result.hotel.maps ? `<a href="${esc(result.hotel.maps)}" target="_blank" rel="noopener">📍 Google Maps Directions ↗</a>` : ''}`;
+      $('roomList').innerHTML = result.rooms.map(r => {
+        photos[r.roomNumber] = [r.photo1, r.photo2, r.photo3].filter(Boolean);
+        return `
+          <article class="card">
+            <div id="photo-${esc(r.roomNumber)}">
+              ${photos[r.roomNumber].length ? `<img class="picture" src="${photo(photos[r.roomNumber][0])}" alt="Room ${esc(r.roomNumber)}">` : '<div class="picture" style="display:grid;place-items:center;font-size:44px">🛏️</div>'}
+            </div>
+            ${photos[r.roomNumber].length > 1 ? `<button class="btn ghost small" data-next="${esc(r.roomNumber)}">अर्को फोटो ↗</button>` : ''}
+            <div class="row between" style="margin-top:12px"><h3>Room ${esc(r.roomNumber)}</h3>${badge(r.status)}</div>
+            <p class="muted mini">${esc(r.type)} · ${esc(r.facilities)} · ${esc(r.description)}</p>
+            <div class="row between"><strong>रु. ${r.price.toLocaleString()} / रात</strong>
+            <button class="btn small" data-book="${esc(r.roomNumber)}" ${r.status !== 'Available' ? 'disabled' : ''}>बुकिङ अनुरोध</button></div>
+          </article>`;
+      }).join('') || '<div class="card">यस होटलका कोठा अहिले उपलब्ध छैनन् ।</div>';
+      $('results').classList.add('hidden');
+      $('roomSection').classList.remove('hidden');
+      $('roomSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openModal(title, body) {
+      $('modalTitle').textContent = title;
+      $('modalBody').innerHTML = body;
+      $('modal').classList.remove('hidden');
+    }
+
+    function startBooking(number) {
+      bookingRequestId = crypto.randomUUID();
+      openModal('Room ' + number + ' · बुकिङ अनुरोध', `
+        <form id="bookingForm" class="stack">
+          <label class="field">पूरा नाम<input name="customerName" required minlength="2"></label>
+          <label class="field">मोबाइल नम्बर<input name="customerPhone" required inputmode="tel"></label>
+          <button class="btn full" type="submit">अनुरोध पठाउनुहोस्</button>
+        </form>
+        <p class="muted mini">१५ मिनेटसम्म होटलको स्वीकृतिका लागि कोठा Hold मा रहनेछ ।</p>
+      `);
+      $('bookingForm').onsubmit = event => {
+        event.preventDefault();
+        busy(event.submitter, async () => {
+          const result = await api('createBooking', {
+            hotelId: selectedHotel.id, roomNumber: number,
+            ...formData(event.target), requestId: bookingRequestId
+          }, false);
+          if (!result.success) throw new Error(result.message);
+          localStorage.setItem('se_booking', JSON.stringify({ bookingId: result.bookingId, secretCode: result.secretCode }));
+          openModal('अनुरोध पठाइयो', `<p>${esc(result.message)}</p><p>Booking ID : <strong>${esc(result.bookingId)}</strong></p><p>गोप्य कोड : <strong>${esc(result.secretCode)}</strong></p><p class="muted mini">कोड सुरक्षित राख्नुहोस् ।</p>`);
+          await openHotel(selectedHotel.id);
+        });
+      };
+    }
+
+    $('searchForm').onsubmit = event => {
+      event.preventDefault();
+      busy(event.submitter, () => search());
+    };
+    $('nearby').onclick = event => busy(event.currentTarget, async () => {
+      if (!navigator.geolocation) throw new Error('यस उपकरणमा GPS उपलब्ध छैन ।');
+      const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000 }));
+      await search({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+    });
+    $('hotelList').onclick = event => {
+      const button = event.target.closest('[data-hotel]');
+      if (button) busy(button, () => openHotel(button.dataset.hotel));
+    };
+    $('roomList').onclick = event => {
+      const book = event.target.closest('[data-book]');
+      if (book) startBooking(book.dataset.book);
+      const next = event.target.closest('[data-next]');
+      if (next) {
+        const room = next.dataset.next;
+        const images = photos[room];
+        const image = $('photo-' + room).querySelector('img');
+        const index = images.indexOf(image.getAttribute('src'));
+        image.src = images[(index + 1) % images.length];
+      }
+    };
+    $('back').onclick = () => {
+      $('roomSection').classList.add('hidden');
+      $('results').classList.remove('hidden');
+    };
+    $('closeModal').onclick = () => $('modal').classList.add('hidden');
+    $('myBooking').onclick = event => busy(event.currentTarget, async () => {
+      const stored = JSON.parse(localStorage.getItem('se_booking') || 'null');
+      if (!stored) return openModal('मेरो बुकिङ', '<p>यो ब्राउजरमा बुकिङ भेटिएन ।</p>');
+      const result = await api('bookingStatus', stored, false);
+      if (!result.success) throw new Error(result.message);
+      openModal('मेरो बुकिङ', `<p>Booking ID : ${esc(result.bookingId)}</p><p>Room : ${esc(result.roomNumber)}</p><p>अवस्था : ${badge(result.status)}</p>`);
+    });
+    search().catch(error => notify(error.message, true));
+  </script>
+</body>
+</html>
